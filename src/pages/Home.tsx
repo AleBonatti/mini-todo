@@ -1,19 +1,34 @@
-import { useEffect, useMemo, useState } from "react";
-import AddTodoForm from "../components/AddTodoForm";
-import TodoItem from "../components/TodoItem";
-import type { Todo, Priority } from "../types";
-import { fetchTodos, createTodo, patchTodo, deleteTodo } from "../services/todos";
+import { useEffect, useMemo, useState } from 'react';
+import AddTodoForm from '../components/AddTodoForm';
+import TodoItem from '../components/TodoItem';
+import type { Todo, Priority } from '../types';
+import {
+  fetchTodos,
+  createTodo,
+  patchTodo,
+  deleteTodo,
+} from '../services/todos';
+
+// Helper type-safe per ricavare un messaggio da errori sconosciuti
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return String(err);
+  }
+}
 
 export default function Home() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [query, setQuery] = useState("");
-  const [show, setShow] = useState<"all" | "open" | "done">("all");
-  const [prio, setPrio] = useState<"all" | Priority>("all");
+  const [query, setQuery] = useState('');
+  const [show, setShow] = useState<'all' | 'open' | 'done'>('all');
+  const [prio, setPrio] = useState<'all' | Priority>('all');
 
-  // Load
+  // Load iniziale
   useEffect(() => {
     (async () => {
       try {
@@ -21,8 +36,8 @@ export default function Home() {
         const data = await fetchTodos();
         setTodos(data);
         setError(null);
-      } catch (e: any) {
-        setError(e?.message ?? "Unknown error");
+      } catch (e: unknown) {
+        setError(getErrorMessage(e));
       } finally {
         setLoading(false);
       }
@@ -32,32 +47,43 @@ export default function Home() {
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
     return todos.filter((t) => {
-      if (show === "open" && t.done) return false;
-      if (show === "done" && !t.done) return false;
-      if (prio !== "all" && t.priority !== prio) return false;
+      if (show === 'open' && t.done) return false;
+      if (show === 'done' && !t.done) return false;
+      if (prio !== 'all' && t.priority !== prio) return false;
       if (q && !t.text.toLowerCase().includes(q)) return false;
       return true;
     });
   }, [todos, query, show, prio]);
 
-  const add = async (data: { text: string; priority: Priority; dueDate?: string }) => {
+  const add = async (data: {
+    text: string;
+    priority: Priority;
+    dueDate?: string;
+  }) => {
     try {
       const created = await createTodo({ ...data, done: false });
       setTodos((prev) => [created, ...prev]);
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to add");
+    } catch (e: unknown) {
+      setError(getErrorMessage(e));
     }
   };
 
   const toggle = async (id: string) => {
     const current = todos.find((t) => t.id === id);
     if (!current) return;
-    const next = { done: !current.done, completedAt: !current.done ? Date.now() : undefined };
+
+    const patch: Partial<Todo> = {
+      done: !current.done,
+      completedAt: !current.done ? Date.now() : undefined,
+    };
+
     try {
-      const updated = await patchTodo(id, next);
-      setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, ...updated } : t)));
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to toggle");
+      const updated = await patchTodo(id, patch); // usa PUT su MockAPI
+      setTodos((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, ...updated } : t)),
+      );
+    } catch (e: unknown) {
+      setError(getErrorMessage(e));
     }
   };
 
@@ -65,8 +91,8 @@ export default function Home() {
     try {
       await deleteTodo(id);
       setTodos((prev) => prev.filter((t) => t.id !== id));
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to delete");
+    } catch (e: unknown) {
+      setError(getErrorMessage(e));
     }
   };
 
@@ -77,13 +103,30 @@ export default function Home() {
       <AddTodoForm onAdd={add} />
 
       <div className="toolbar">
-        <input placeholder="Search…" value={query} onChange={(e) => setQuery(e.target.value)} />
-        <select value={show} onChange={(e) => setShow(e.target.value as any)}>
+        <input
+          placeholder="Search…"
+          value={query}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setQuery(e.target.value)
+          }
+        />
+        <select
+          value={show}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+            setShow(e.target.value as 'all' | 'open' | 'done')
+          }
+        >
           <option value="all">All</option>
           <option value="open">Open</option>
           <option value="done">Done</option>
         </select>
-        <select aria-label="Priority filter" value={prio} onChange={(e) => setPrio(e.target.value as any)}>
+        <select
+          aria-label="Priority filter"
+          value={prio}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+            setPrio(e.target.value as 'all' | Priority)
+          }
+        >
           <option value="all">All priorities</option>
           <option value="low">Low</option>
           <option value="medium">Medium</option>

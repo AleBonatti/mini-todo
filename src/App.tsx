@@ -1,22 +1,30 @@
-import { BrowserRouter, Routes, Route, NavLink } from "react-router-dom";
-import Home from "./pages/Home";
-import About from "./pages/About";
-import { ThemeProvider, useTheme } from "./context/ThemeContext";
+import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
+import Home from './pages/Home';
+import About from './pages/About';
+import { ThemeProvider } from './context/ThemeProvider';
+import { useTheme } from './context/ThemeContext';
 
 function Layout({ children }: { children: React.ReactNode }) {
   const { theme, toggle } = useTheme();
   return (
     <>
       <header className="app-header" style={{ gap: 12 }}>
-        <nav style={{ display: "flex", gap: 12 }}>
-          <NavLink to="/" className={({ isActive }) => (isActive ? "active" : undefined)} end>
+        <nav style={{ display: 'flex', gap: 12 }}>
+          <NavLink
+            to="/"
+            className={({ isActive }) => (isActive ? 'active' : undefined)}
+            end
+          >
             Home
           </NavLink>
-          <NavLink to="/about" className={({ isActive }) => (isActive ? "active" : undefined)}>
+          <NavLink
+            to="/about"
+            className={({ isActive }) => (isActive ? 'active' : undefined)}
+          >
             About
           </NavLink>
         </nav>
-        <div style={{ marginLeft: "auto" }}>
+        <div style={{ marginLeft: 'auto' }}>
           <button onClick={toggle}>Theme: {theme}</button>
         </div>
       </header>

@@ -1,58 +1,62 @@
+/// <reference types="vitest/globals" />
+
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StrictMode } from 'react';
 import App from './App';
 
-// Mock globale di fetch
+// Mock globale di fetch (senza any)
 beforeEach(() => {
-  global.fetch = vi.fn(async (url, options: any = {}) => {
-    const method = (options.method || 'GET').toUpperCase();
+  global.fetch = vi.fn(
+    async (url: RequestInfo | URL, options: RequestInit = {}) => {
+      const method = (options.method || 'GET').toUpperCase();
 
-    // Mock della lista iniziale
-    if (method === 'GET' && String(url).includes('/todos')) {
-      return {
-        ok: true,
-        json: async () => [
-          {
-            id: '1',
-            text: 'Buy milk',
-            done: false,
-            createdAt: Date.now(),
-            priority: 'medium',
-          },
-        ],
-      } as Response;
-    }
+      // Mock lista iniziale
+      if (method === 'GET' && String(url).includes('/todos')) {
+        return {
+          ok: true,
+          json: async () => [
+            {
+              id: '1',
+              text: 'Buy milk',
+              done: false,
+              createdAt: Date.now(),
+              priority: 'medium',
+            },
+          ],
+        } as unknown as Response;
+      }
 
-    // Mock POST (creazione)
-    if (method === 'POST') {
-      const body = JSON.parse(options.body);
-      return {
-        ok: true,
-        json: async () => ({
-          id: '2',
-          ...body,
-        }),
-      } as Response;
-    }
+      // Mock POST (creazione)
+      if (method === 'POST') {
+        const body = JSON.parse(options.body as string);
+        return {
+          ok: true,
+          json: async () => ({
+            id: '2',
+            ...body,
+          }),
+        } as unknown as Response;
+      }
 
-    // Mock PUT (update)
-    if (method === 'PUT') {
-      const body = JSON.parse(options.body);
-      return {
-        ok: true,
-        json: async () => body,
-      } as Response;
-    }
+      // Mock PUT (update)
+      if (method === 'PUT') {
+        const body = JSON.parse(options.body as string);
+        return {
+          ok: true,
+          json: async () => body,
+        } as unknown as Response;
+      }
 
-    // Mock DELETE
-    if (method === 'DELETE') {
-      return { ok: true } as Response;
-    }
+      // Mock DELETE
+      if (method === 'DELETE') {
+        return { ok: true } as unknown as Response;
+      }
 
-    // fallback
-    return { ok: false, status: 404 } as Response;
-  }) as any;
+      // fallback
+      return { ok: false, status: 404 } as unknown as Response;
+    },
+  ) as unknown as typeof fetch;
 });
 
 afterEach(() => {
