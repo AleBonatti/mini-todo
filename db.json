@@ -1,0 +1,27 @@
+{
+  "todos": [
+    {
+      "id": "1",
+      "text": "Buy milk",
+      "done": false,
+      "createdAt": 1730546400000,
+      "priority": "medium"
+    },
+    {
+      "id": "2",
+      "text": "Read a chapter",
+      "done": true,
+      "createdAt": 1730460000000,
+      "completedAt": 1759750053734,
+      "priority": "low"
+    },
+    {
+      "id": "0739c1f6-4dcc-41b0-97d1-439592c8eb66",
+      "createdAt": 1759749918911,
+      "text": "Do nothing",
+      "priority": "medium",
+      "dueDate": "1996-01-21",
+      "done": false
+    }
+  ]
+}
