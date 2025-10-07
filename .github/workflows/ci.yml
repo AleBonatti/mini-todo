@@ -1,10 +1,10 @@
-name: CI (lint • typecheck • test • build • gated deploy)
+name: CI (lint • typecheck • test • build • gated prod deploy)
 
 on:
   pull_request:
-    branches: [main] # PR verso main
+    branches: [main] # CI sulle PR verso main (no deploy)
   push:
-    branches: [main] # push su main
+    branches: [main] # CI + Deploy Hook SOLO su main
 
 permissions:
   contents: read
@@ -43,22 +43,13 @@ jobs:
       - name: Build (Vite)
         run: npm run build
 
-      # Facoltativo: conserva la build
+      # Opzionale: conserva l'artefatto di build
       - name: Upload dist artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist
-
-  deploy_preview:
-    name: Trigger Vercel PREVIEW
-    needs: ci
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Call Vercel Preview Deploy Hook
-        run: curl -s -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_PREVIEW }}"
 
   deploy_production:
     name: Trigger Vercel PRODUCTION
